@@ -1,30 +1,55 @@
-"""news-image-20261122 entry: copy the bundled front-page image to the output.
+"""Entry program for the 22 November 2026 news-image competition.
 
-The image (entry.png, beside this file) sums up the world news of Sunday
-22 November 2026 in one front page: COP31 ends with no deal in Antalya
-(centre), a Russian drone strike on a Dymer apartment block near Kyiv,
-a Russian warship hit at Benghazi, Democrats winning 258 US House
-seats, the capture of cartel boss El Chapo Isidro in Mexico, and
-BepiColombo entering orbit around Mercury, with a ticker for the
-Iran-Bahrain strike, the Nigeria boat disaster, South Korea's
-AI-cheating resignation and the Indonesia factory fire.
+The repository holds one finished front page, entry.png, which sums up
+Sunday 22 November 2026: the COP31 climate summit in Antalya closing
+with no deal, fighting around Kyiv and at Benghazi, the United States
+House result, a cartel arrest in Mexico and a Mercury arrival. This
+program validates that image and places an identical copy where the
+grader expects it, at $MAKEFUN_OUTPUT_DIR/entry.png (default /output).
+Only the Python standard library is used and no network is touched.
 """
 
+import hashlib
 import os
-import shutil
+from pathlib import Path
+
+PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+ONE_MEBIBYTE = 1_048_576
 
 
-def main() -> None:
-    here = os.path.dirname(os.path.abspath(__file__))
-    out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
-    os.makedirs(out_dir, exist_ok=True)
-    src = os.path.join(here, "entry.png")
-    dst = os.path.join(out_dir, "entry.png")
-    # Copy byte-for-byte so repeated runs write identical bytes,
-    # as the competition rules require (no network, deterministic).
-    shutil.copyfile(src, dst)
-    assert os.path.getsize(dst) == os.path.getsize(src)
+def load_entry_bytes() -> bytes:
+    """Read the bundled front page and check it obeys the size rules."""
+    source = Path(__file__).resolve().parent / "entry.png"
+    payload = source.read_bytes()
+    if not payload.startswith(PNG_MAGIC):
+        raise ValueError("entry.png does not start with the PNG signature")
+    if len(payload) > ONE_MEBIBYTE:
+        raise ValueError("entry.png is larger than one mebibyte")
+    return payload
+
+
+def publish(payload: bytes) -> Path:
+    """Write the payload to the output directory and return its path."""
+    target_dir = Path(os.getenv("MAKEFUN_OUTPUT_DIR", "/output"))
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target = target_dir / "entry.png"
+    target.write_bytes(payload)
+    return target
+
+
+def digest(data: bytes) -> str:
+    """Return the SHA-256 hex digest used to verify the copy."""
+    return hashlib.sha256(data).hexdigest()
+
+
+def run() -> None:
+    payload = load_entry_bytes()
+    target = publish(payload)
+    written = target.read_bytes()
+    if digest(written) != digest(payload):
+        raise IOError("the written file differs from the bundled image")
+    print(f"wrote {target} ({len(written)} bytes, sha256 {digest(written)[:16]}...)")
 
 
 if __name__ == "__main__":
-    main()
+    run()
