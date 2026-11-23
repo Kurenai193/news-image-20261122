@@ -1,11 +1,12 @@
 """Entry program for the 22 November 2026 news-image competition.
 
 The repository holds one finished front page, entry.png, which sums up
-Sunday 22 November 2026: the COP31 climate summit in Antalya closing
-with no deal, fighting around Kyiv and at Benghazi, the United States
-House result, a cartel arrest in Mexico and a Mercury arrival. This
-program validates that image and places an identical copy where the
-grader expects it, at $MAKEFUN_OUTPUT_DIR/entry.png (default /output).
+Sunday 22 November 2026 in thirty-five dated stories: COP31 closing in
+Antalya with no deal, 186 drones over Ukraine, Iran's claimed radar
+strikes in Bahrain, and thirty-two further stories with a map, a
+numbers band and a date check. This program validates that image and
+places an identical copy where the grader expects it, at
+$MAKEFUN_OUTPUT_DIR/entry.png (default /output).
 Only the Python standard library is used and no network is touched.
 """
 
